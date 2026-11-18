@@ -14,6 +14,8 @@ def load_streamflow(filename):
 
 def plot_streamflow(dates, flows, sites):
     """Plot the flow at each gauge, with the same title, labels, and formatting as the Matplotlib HW."""
+    plt.savefig("provo_streamflow.png", dpi=150, bbox_inches="tight")
+    
     for i in range(len(sites)):
         plt.plot(dates, flows[:, i], label=sites[i])
 
