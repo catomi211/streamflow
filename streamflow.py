@@ -35,10 +35,19 @@ def plot_streamflow(dates, flows, sites):
     plt.grid()
     plt.show()
 
+### Values I got from excel Gauge	Max (cfs)	Date of max	Min (cfs)	Avg (cfs)
+# 10163000	131	6/1/2021 8:15	35.6	57
+# 10155200	215	6/27/2021 17:00	125	166.4
+# 10155500	259	6/24/2021 20:15	182	213.3
+# 10154200	406	6/2/2021 5:15	50.4	139.6
+# 10155000	754	6/3/2021 5:45	23.2	187.8
+
+
 def summarize(dates, flows, sites, filename="streamflow_summary.csv"):
     """Print and save summary statistics for each gauge."""
     rows = []
 
+    # this goes through each site to calculate max,min,avd, and date.
     for i in range(len(sites)):
         gauge_flows = flows[:, i]
         max_value = np.max(gauge_flows)
@@ -47,6 +56,7 @@ def summarize(dates, flows, sites, filename="streamflow_summary.csv"):
         max_row = np.argmax(gauge_flows)
         date_of_max = np.datetime_as_string(dates[max_row], unit="s").replace("T", " ")
 
+        # this appends dictionaries to ones list. 
         rows.append({
             "Gauge": sites[i],
             "Max (cfs)": max_value,
@@ -55,26 +65,33 @@ def summarize(dates, flows, sites, filename="streamflow_summary.csv"):
             "Avg (cfs)": avg_value,
         })
 
+    # This create a pandas dataframe from each row based on dictionaries. 
     summary = pd.DataFrame(rows).round({
         "Max (cfs)": 1,
         "Min (cfs)": 1,
         "Avg (cfs)": 1,
     })
-    summary.to_csv(filename, index=False)
-
-    print(f"{'Gauge':<12}{'Max (cfs)':>10}{'Date of max':>22}"
-          f"{'Min (cfs)':>12}{'Avg (cfs)':>12}")
-
-    for row in rows:
-        print(f"{row['Gauge']:>12}"
-              f"{row['Max (cfs)']:10.1f}"
-              f"{row['Date of max']:>22}"
-              f"{row['Min (cfs)']:12.1f}"
-              f"{row['Avg (cfs)']:12.1f}")
+    # this saves everything to an excel file.
+    summary.to_csv(filename, index=False) 
 
 
 # Main program
 sites = ["10163000", "10155200", "10155500", "10154200", "10155000"]
 dates, flows = load_streamflow("June-2021-Provo-River-Streamflow-Rates.csv")
 summarize(dates, flows, sites)
+
+# asks the user to input a threshold value.
+threshold = float(input("Enter a flow threshold in cfs: "))
+
+# loops through each site.
+for i in range(len(sites)):
+  # this calculates the number of cases that are above the threshold
+    readings_above_threshold = np.sum(flows[:, i] > threshold)
+
+    # converts to hours 
+    hours_above_threshold = readings_above_threshold * 0.25
+    
+    # prints out the number of hours above the given threshold
+    print(f"Gauge {sites[i]}: {hours_above_threshold} hours above {threshold} cfs")
+
 plot_streamflow(dates, flows, sites)
